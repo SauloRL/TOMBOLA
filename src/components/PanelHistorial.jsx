@@ -3,6 +3,7 @@ import { useEffect, useRef } from 'react';
 const formatoHora = new Intl.DateTimeFormat('es-MX', {
   hour: '2-digit',
   minute: '2-digit',
+  second: '2-digit',
 });
 
 const horaDe = (iso) => {

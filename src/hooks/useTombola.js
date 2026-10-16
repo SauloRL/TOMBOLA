@@ -45,7 +45,6 @@ export function useTombola(dibujarRef) {
 
   const anguloRef = useRef(0);
   const animacionRef = useRef(null);
-  const detenerRef = useRef(false);
   const ultimoSectorRef = useRef(-1);
 
   const { reproducirTick, reproducirPremio, detenerPremio, prepararAudio } = useAudio();
@@ -144,7 +143,6 @@ export function useTombola(dibujarRef) {
 
     dibujar(anguloParaIndice(indice, total));
     setGirando(false);
-    detenerRef.current = false;
 
     reproducirPremio(premio.audio);
     setHistorial((prev) => [...prev, { ...premio, ganadoEn: new Date().toISOString() }]);
@@ -174,14 +172,11 @@ export function useTombola(dibujarRef) {
     const duracion = aleatorioEntre(MS_GIRO_MIN, MS_GIRO_MAX);
     const inicio = performance.now();
 
-    detenerRef.current = false;
     ultimoSectorRef.current = -1;
     setGirando(true);
 
     const paso = (ahora) => {
-      const t = detenerRef.current
-        ? 1
-        : Math.min((ahora - inicio) / duracion, 1);
+      const t = Math.min((ahora - inicio) / duracion, 1);
 
       const angulo = anguloInicial + delta * easeOutQuart(t);
       dibujar(angulo, true);
@@ -203,10 +198,6 @@ export function useTombola(dibujarRef) {
     animacionRef.current = requestAnimationFrame(paso);
   }, [restantes, girando, ganador, prepararAudio, finalizar, dibujar, reproducirTick]);
 
-  /** Lleva el giro a su final de inmediato; el ganador ya estaba decidido. */
-  const detenerGiro = useCallback(() => {
-    if (girando) detenerRef.current = true;
-  }, [girando]);
 
   // ---------------------------------------------------------------- MODAL
 
@@ -249,7 +240,6 @@ export function useTombola(dibujarRef) {
     reiniciar,
     limpiarTodo,
     girar,
-    detenerGiro,
     cerrarModal,
   };
 }

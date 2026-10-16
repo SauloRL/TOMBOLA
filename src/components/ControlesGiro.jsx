@@ -1,9 +1,10 @@
 /**
  * Controles flotantes bajo la rueda. El botón de girar desaparece mientras la
  * rueda se mueve y mientras se anuncia al ganador; reaparece al cerrar el
- * anuncio, que es la señal de que le toca a la siguiente persona.
+ * anuncio, que es la señal de que le toca a la siguiente persona. El giro no
+ * se puede detener: debe verse completo para que nadie dude del resultado.
  */
-export default function ControlesGiro({ hayPremios, girando, anunciando, estatus, onGirar, onDetener }) {
+export default function ControlesGiro({ hayPremios, girando, anunciando, estatus, onGirar }) {
   const mostrarGirar = hayPremios && !girando && !anunciando;
 
   return (
@@ -12,12 +13,6 @@ export default function ControlesGiro({ hayPremios, girando, anunciando, estatus
         <button type="button" id="btnGirar" onClick={onGirar}>
           ¡GIRAR RUEDA!
           <span className="btnGirar-atajo">o presiona Enter</span>
-        </button>
-      )}
-
-      {girando && (
-        <button type="button" className="btn-detener" onClick={onDetener}>
-          Detener ahora
         </button>
       )}
 

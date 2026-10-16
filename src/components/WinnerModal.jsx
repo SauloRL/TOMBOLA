@@ -6,7 +6,7 @@ import Confeti from './Confeti.jsx';
  * Anuncio del ganador. Es un diálogo modal real: atrapa el foco, se cierra con
  * Escape y devuelve el foco al elemento que lo abrió.
  */
-export default function WinnerModal({ ganador, onCerrar }) {
+export default function WinnerModal({ ganador, fotoDe, onCerrar }) {
   const cajaRef = useRef(null);
   const botonRef = useRef(null);
   const focoPrevioRef = useRef(null);
@@ -90,7 +90,7 @@ export default function WinnerModal({ ganador, onCerrar }) {
 
         <div className="contenedor-img">
           <img
-            src={rutaImagen(premio.imagen)}
+            src={fotoDe(premio.imagen)}
             alt={`Premio: ${premio.nombre}`}
             onError={(e) => {
               e.currentTarget.onerror = null;

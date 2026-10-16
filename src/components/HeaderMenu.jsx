@@ -8,7 +8,11 @@ export default function HeaderMenu({
   totalPremios,
   premiosRestantes,
   totalSorteados,
+  totalFotos,
   onCargar,
+  onCargarFotos,
+  onExportarSorteados,
+  onExportarPendientes,
   onReiniciar,
   onLimpiar,
   onVerHistorial,
@@ -16,6 +20,7 @@ export default function HeaderMenu({
   const [abierto, setAbierto] = useState(false);
   const contenedorRef = useRef(null);
   const inputRef = useRef(null);
+  const inputFotosRef = useRef(null);
   const botonRef = useRef(null);
   const { activa: enPantallaCompleta, alternar: alternarPantallaCompleta } = usePantallaCompleta();
 
@@ -59,7 +64,7 @@ export default function HeaderMenu({
 
   return (
     <header className="main-header">
-      <h1 id="tituloHeader">RULETA DE REGALOS 2026</h1>
+      <h1 id="tituloHeader">RULETA DE REGALOS</h1>
 
       <div className="header-derecha">
         {hayDatos && (
@@ -99,14 +104,44 @@ export default function HeaderMenu({
               📂 Cargar JSON
             </button>
 
-            {totalSorteados > 0 && (
-              <button type="button" role="menuitem" onClick={() => ejecutar(onVerHistorial)}>
-                🏆 Ver sorteados ({totalSorteados})
+            {hayDatos && (
+              <button type="button" role="menuitem" onClick={() => ejecutar(() => inputFotosRef.current?.click())}>
+                📷 Cargar carpeta de fotos{totalFotos > 0 ? ` (${totalFotos})` : ''}
               </button>
+            )}
+
+            {totalSorteados > 0 && (
+              <>
+                <button type="button" role="menuitem" onClick={() => ejecutar(onVerHistorial)}>
+                  🏆 Ver sorteados ({totalSorteados})
+                </button>
+                <button type="button" role="menuitem" onClick={() => ejecutar(() => onExportarSorteados(false))}>
+                  💾 Descargar sorteados (.txt)
+                </button>
+                <button type="button" role="menuitem" onClick={() => ejecutar(() => onExportarSorteados(true))}>
+                  📤 Compartir sorteados
+                </button>
+              </>
             )}
 
             {hayDatos && (
               <>
+                <button
+                  type="button"
+                  role="menuitem"
+                  disabled={premiosRestantes === 0}
+                  onClick={() => ejecutar(() => onExportarPendientes(false))}
+                >
+                  💾 Descargar pendientes (.txt)
+                </button>
+                <button
+                  type="button"
+                  role="menuitem"
+                  disabled={premiosRestantes === 0}
+                  onClick={() => ejecutar(() => onExportarPendientes(true))}
+                >
+                  📤 Compartir pendientes
+                </button>
                 <button
                   type="button"
                   role="menuitem"
@@ -137,6 +172,19 @@ export default function HeaderMenu({
         onChange={(e) => {
           onCargar(e.target.files?.[0]);
           // Permite volver a elegir el mismo archivo después de corregirlo.
+          e.target.value = '';
+        }}
+      />
+
+      <input
+        type="file"
+        ref={inputFotosRef}
+        accept="image/*"
+        multiple
+        webkitdirectory=""
+        hidden
+        onChange={(e) => {
+          onCargarFotos(e.target.files);
           e.target.value = '';
         }}
       />

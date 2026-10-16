@@ -4,8 +4,11 @@ import HeaderMenu from './components/HeaderMenu.jsx';
 import PanelHistorial from './components/PanelHistorial.jsx';
 import Wheel from './components/Wheel.jsx';
 import WinnerModal from './components/WinnerModal.jsx';
+import { IMAGEN_POR_DEFECTO } from './constantes.js';
 import { useAtajoGiro } from './hooks/useAtajoGiro.js';
+import { useFotosLocales } from './hooks/useFotosLocales.js';
 import { useTombola } from './hooks/useTombola.js';
+import { compartirTxt, descargarTxt, textoPendientes, textoSorteados } from './utils/exportar.js';
 import './TombolaPro.css';
 
 export default function TombolaPro() {
@@ -25,9 +28,23 @@ export default function TombolaPro() {
     reiniciar,
     limpiarTodo,
     girar,
-    detenerGiro,
     cerrarModal,
   } = useTombola(dibujarRef);
+
+  const { fotos, cargarFotos, fotoDe } = useFotosLocales();
+
+  const alCargarFotos = (fileList) => {
+    const nuevas = cargarFotos(fileList);
+    const faltantes = [...new Set(
+      originales
+        .map((p) => p.imagen)
+        .filter((img) => img !== IMAGEN_POR_DEFECTO && !nuevas.has(img.toLowerCase())),
+    )];
+    window.alert(
+      `Se cargaron ${nuevas.size} fotos.` +
+      (faltantes.length > 0 ? `\nNo se encontraron: ${faltantes.join(', ')}` : ''),
+    );
+  };
 
   const puedeGirar = restantes.length > 0 && !girando && !ganador;
 
@@ -43,7 +60,13 @@ export default function TombolaPro() {
         totalPremios={originales.length}
         premiosRestantes={restantes.length}
         totalSorteados={historial.length}
+        totalFotos={fotos.size}
         onCargar={cargarArchivo}
+        onCargarFotos={alCargarFotos}
+        onExportarSorteados={(compartir) =>
+          (compartir ? compartirTxt : descargarTxt)('sorteados.txt', textoSorteados(historial))}
+        onExportarPendientes={(compartir) =>
+          (compartir ? compartirTxt : descargarTxt)('pendientes.txt', textoPendientes(restantes))}
         onReiniciar={reiniciar}
         onLimpiar={limpiarTodo}
         onVerHistorial={() => setHistorialAbierto(true)}
@@ -64,7 +87,6 @@ export default function TombolaPro() {
           anunciando={Boolean(ganador)}
           estatus={estatus}
           onGirar={girar}
-          onDetener={detenerGiro}
         />
       </main>
 
@@ -74,7 +96,7 @@ export default function TombolaPro() {
         onCerrar={() => setHistorialAbierto(false)}
       />
 
-      {ganador && <WinnerModal ganador={ganador} onCerrar={cerrarModal} />}
+      {ganador && <WinnerModal ganador={ganador} fotoDe={fotoDe} onCerrar={cerrarModal} />}
     </div>
   );
 }
