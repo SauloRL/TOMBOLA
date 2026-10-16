@@ -1,0 +1,595 @@
+/* ==========================================
+   RESET
+   ========================================== */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+html, body, #root {
+  width: 100%;
+  height: 100%;
+  background-color: #0d0e15;
+  color: #ffffff;
+  overflow: hidden; /* la ruleta se ajusta a la pantalla: no debe haber scroll */
+}
+
+/* Ocupa el alto exacto de la ventana para que la rueda pueda crecer al máximo
+   sin empujar los controles fuera de la pantalla. */
+.tombola-app {
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+  width: 100%;
+  overflow: hidden;
+}
+
+/* ==========================================
+   ENCABEZADO
+   ========================================== */
+.main-header {
+  flex: 0 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  padding: 6px 24px;
+  background-color: #fbf48a;
+  border-bottom: 2px solid #282c40;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
+  z-index: 50;
+}
+
+#tituloHeader {
+  font-size: clamp(15px, 2vw, 26px);
+  font-weight: 800;
+  color: #382d03;
+  letter-spacing: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.header-derecha {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.contador-avance {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  color: #382d03;
+  font-size: 14px;
+  white-space: nowrap;
+}
+
+.contador-avance strong {
+  font-size: clamp(18px, 2.2vw, 26px);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.contador-sep,
+.contador-etiqueta {
+  opacity: 0.7;
+  font-size: 13px;
+}
+
+.btn-icon {
+  background: #252a3e;
+  border: 1px solid #3b425d;
+  color: #ffffff;
+  font-size: 20px;
+  line-height: 1;
+  padding: 8px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-icon:hover {
+  background: #323852;
+  transform: scale(1.05);
+}
+
+.menu-desplegable {
+  position: relative;
+}
+
+.menu-content {
+  display: none;
+  position: absolute;
+  right: 0;
+  top: 48px;
+  background-color: #1e2235;
+  min-width: 230px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.6);
+  border: 1px solid #3b425d;
+  border-radius: 12px;
+  z-index: 100;
+  overflow: hidden;
+}
+
+.menu-content.show {
+  display: block;
+}
+
+.menu-content button {
+  width: 100%;
+  padding: 14px 18px;
+  background: none;
+  border: none;
+  color: #ffffff;
+  text-align: left;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.menu-content button:hover {
+  background-color: #2c324b;
+}
+
+.menu-content button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.menu-content button:disabled:hover {
+  background: none;
+}
+
+/* ==========================================
+   ESCENARIO: LA RULETA ES LA PROTAGONISTA
+   ========================================== */
+.escenario {
+  flex: 1 1 auto;
+  min-height: 0; /* imprescindible para que el hijo flexible pueda encogerse */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 12px 50px 16px;
+}
+
+/* Cuadrada y tan grande como permita el espacio libre. Al no fijar un tamaño en
+   vh o vw, se adapta igual a una pantalla horizontal, vertical o a una tableta. */
+.contenedor-tombola {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+  aspect-ratio: 1 / 1;
+  max-width: 100%;
+}
+
+.contenedor-tombola.clicable {
+  cursor: pointer;
+}
+
+.contenedor-tombola.clicable:hover #tombola {
+  filter: drop-shadow(0 0 30px rgba(241, 196, 15, 0.45));
+}
+
+#tombola {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  border-radius: 50%;
+  filter: drop-shadow(0 0 25px rgba(0, 0, 0, 0.7));
+  transition: filter 0.25s ease;
+}
+
+/* La punta se apoya sobre el borde derecho de la rueda, que es el ángulo 0. */
+.flecha {
+  position: absolute;
+  right: -36px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 0;
+  height: 0;
+  border-top: 20px solid transparent;
+  border-bottom: 20px solid transparent;
+  border-right: 45px solid #ff3838;
+  z-index: 20;
+  filter: drop-shadow(-2px 0 6px rgba(255, 56, 56, 0.9));
+  pointer-events: none;
+}
+
+/* ==========================================
+   CONTROLES FLOTANTES
+   ========================================== */
+.controles-flotantes {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  min-height: 92px; /* reserva el hueco para que la rueda no salte al aparecer el botón */
+  justify-content: center;
+}
+
+#btnGirar {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 14px 56px 12px;
+  font-size: clamp(20px, 2.4vw, 30px);
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  color: #0d0e15;
+  background: linear-gradient(135deg, #2ecc71, #27ae60);
+  border: none;
+  border-radius: 16px;
+  cursor: pointer;
+  box-shadow: 0 8px 0 #1e8449, 0 12px 25px rgba(46, 204, 113, 0.4);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  user-select: none;
+  animation: aparecerBoton 0.35s ease-out;
+}
+
+.btnGirar-atajo {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  opacity: 0.65;
+}
+
+#btnGirar:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 0 #1e8449, 0 16px 30px rgba(46, 204, 113, 0.5);
+}
+
+#btnGirar:active {
+  transform: translateY(6px);
+  box-shadow: 0 2px 0 #1e8449, 0 6px 15px rgba(46, 204, 113, 0.4);
+}
+
+.btn-detener {
+  padding: 12px 32px;
+  font-size: 16px;
+  font-weight: 700;
+  color: #ffffff;
+  background: #3b425d;
+  border: 1px solid #59627f;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.btn-detener:hover {
+  background: #4a5272;
+}
+
+.estatus {
+  text-align: center;
+  font-weight: bold;
+  font-size: 15px;
+  max-width: 70vw;
+}
+
+.estatus--info  { color: #f1c40f; }
+.estatus--exito { color: #2ecc71; }
+.estatus--aviso { color: #ffa94d; }
+.estatus--error { color: #ff6b6b; }
+
+/* ==========================================
+   PANEL DESLIZABLE DEL HISTORIAL
+   ========================================== */
+.historial-fondo {
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 11, 16, 0.6);
+  z-index: 200;
+  animation: fadeIn 0.2s forwards;
+}
+
+.historial-panel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  height: 100%;
+  width: min(420px, 90vw);
+  display: flex;
+  flex-direction: column;
+  background: #161824;
+  border-left: 1px solid #282c40;
+  box-shadow: -10px 0 40px rgba(0, 0, 0, 0.6);
+  z-index: 201;
+  animation: entrarDerecha 0.25s ease-out;
+}
+
+.historial-encabezado {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 20px;
+  border-bottom: 1px solid #282c40;
+}
+
+.historial-encabezado h2 {
+  font-size: 17px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #f1c40f;
+}
+
+.historial-vacio {
+  padding: 24px 20px;
+  color: #8e94a8;
+}
+
+.historial-lista {
+  list-style: none;
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.historial-lista li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 4px;
+  font-size: 15px;
+  color: #d8dced;
+  border-bottom: 1px solid #1f2233;
+}
+
+.historial-orden {
+  min-width: 26px;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  color: #6b7288;
+  flex-shrink: 0;
+}
+
+.historial-punto {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  border: 1px solid rgba(0, 0, 0, 0.4);
+}
+
+/* Empuja la hora al extremo derecho y recorta el nombre si no cabe. */
+.historial-nombre {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.historial-hora {
+  flex-shrink: 0;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  color: #8e94a8;
+  padding-left: 10px;
+  border-left: 1px solid #282c40;
+}
+
+/* ==========================================
+   MODAL DEL GANADOR
+   ========================================== */
+#anuncio-ganador {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(10, 11, 16, 0.9);
+  backdrop-filter: blur(8px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  cursor: pointer;
+  animation: fadeIn 0.3s forwards;
+}
+
+/* Detrás de la tarjeta para que nunca estorbe la lectura del premio. */
+.confeti {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.card-ganador {
+  position: relative;
+  z-index: 2;
+  background: linear-gradient(145deg, #1c1f30, #131522);
+  border: 2px solid #f1c40f;
+  border-radius: 24px;
+  padding: 32px;
+  text-align: center;
+  max-width: 540px;
+  width: 90%;
+  max-height: 92vh;
+  overflow-y: auto;
+  cursor: default;
+  box-shadow: 0 0 60px rgba(241, 196, 15, 0.35);
+  animation: popUp 0.35s forwards ease-out;
+}
+
+.titulo-anuncio {
+  color: #f1c40f;
+  font-size: clamp(26px, 4vw, 40px);
+  font-weight: 900;
+  margin-bottom: 18px;
+  letter-spacing: 2px;
+}
+
+.contenedor-img {
+  width: 100%;
+  height: min(300px, 38vh);
+  overflow: hidden;
+  border-radius: 16px;
+  margin-bottom: 18px;
+  border: 2px solid #282c40;
+  background-color: #0d0e15;
+}
+
+.contenedor-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.nombre-premio {
+  font-size: clamp(22px, 3.2vw, 34px);
+  font-weight: 700;
+  color: #ffffff;
+  margin-bottom: 18px;
+}
+
+.btn-cerrar-modal {
+  margin-bottom: 12px;
+  padding: 12px 28px;
+  font-size: 16px;
+  font-weight: 700;
+  color: #0d0e15;
+  background: #f1c40f;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: filter 0.2s;
+}
+
+.btn-cerrar-modal:hover:not(:disabled) {
+  filter: brightness(1.1);
+}
+
+/* Bloqueado el primer instante para que un Enter de más no salte el anuncio. */
+.btn-cerrar-modal:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.instruccion {
+  font-size: 13px;
+  color: #8e94a8;
+}
+
+/* ==========================================
+   PANTALLA DE ERROR
+   ========================================== */
+.pantalla-error {
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+  padding: 40px;
+  text-align: center;
+  background-color: #0d0e15;
+  color: #ffffff;
+}
+
+.pantalla-error h1 {
+  color: #ff6b6b;
+}
+
+.pantalla-error button {
+  padding: 12px 24px;
+  font-size: 16px;
+  font-weight: 700;
+  border: none;
+  border-radius: 10px;
+  background: #f1c40f;
+  color: #0d0e15;
+  cursor: pointer;
+}
+
+/* ==========================================
+   ANIMACIONES
+   ========================================== */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes popUp {
+  from { transform: scale(0.8); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+@keyframes entrarDerecha {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+
+@keyframes aparecerBoton {
+  from { transform: translateY(20px) scale(0.9); opacity: 0; }
+  to { transform: translateY(0) scale(1); opacity: 1; }
+}
+
+/* ==========================================
+   RESPONSIVO
+   ========================================== */
+@media (max-width: 700px) {
+  .escenario {
+    padding: 10px 34px 12px;
+  }
+  .flecha {
+    right: -26px;
+    border-top-width: 14px;
+    border-bottom-width: 14px;
+    border-right-width: 32px;
+  }
+  .contador-etiqueta,
+  .contador-sep {
+    display: none;
+  }
+  .main-header {
+    padding: 6px 12px;
+  }
+  #btnGirar {
+    padding: 14px 32px;
+  }
+}
+
+/* Pantallas muy bajas (proyectores 4:3, ventanas reducidas) */
+@media (max-height: 560px) {
+  .controles-flotantes {
+    min-height: 62px;
+  }
+  #btnGirar {
+    padding: 10px 32px;
+  }
+  .estatus {
+    display: none;
+  }
+}
+
+/* ==========================================
+   FOCO Y MOVIMIENTO REDUCIDO
+   ========================================== */
+button:focus-visible,
+.historial-panel:focus-visible {
+  outline: 3px solid #f1c40f;
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
